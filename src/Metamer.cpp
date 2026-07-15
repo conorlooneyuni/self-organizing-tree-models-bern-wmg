@@ -51,6 +51,20 @@ U64 Metamer::countMetamers() const {
   return count;
 }
 
+U64 Metamer::countBuds() const {
+  U64 count = 0;
+  if (axillary) {
+    count += axillary->countMetamers();
+  }
+  if (terminal) {
+    count += terminal->countMetamers();
+  }
+  if (!axillary && !terminal) {
+    count += 1;
+  }
+  return count;
+}
+
 BoundingBox Metamer::getBoundingBox() const {
   BoundingBox boundingBox;
   boundingBox.include(beginning);

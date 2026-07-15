@@ -42,6 +42,9 @@ public:
   float getLength() const;
 
   U64 countMetamers() const;
+  U64 countBuds() const;
+
+  int age = 0;
 
   BoundingBox getBoundingBox() const;
 };

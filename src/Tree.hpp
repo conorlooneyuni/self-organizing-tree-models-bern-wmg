@@ -44,4 +44,10 @@ private:
   std::unique_ptr<Metamer> addNewShoot(BudId budId, float supportingMetamerLength, Point origin, Vector direction, float resource);
 
   static void updateInternodeWidths(std::unique_ptr<Metamer> &metamer);
+
+  void prunePoorBranches(std::unique_ptr<Metamer> &metamer);
+
+  bool shouldPruneBranch(std::unique_ptr<Metamer> &metamer);
+
+  void ageMetamers(std::unique_ptr<Metamer> &metamer);
 };

@@ -11,6 +11,9 @@ static float TropismGrowthDirectionWeightAttenuation = 0.95f;
 Tree::Tree(Environment &environment, Point seedlingPosition) : environment(environment) {
   const auto end = seedlingPosition.translate(0.0f, 1.0f * environment.metamerBaseLength, 0.0f);
   root = std::make_unique<Metamer>(environment, seedlingPosition, end);
+
+  PipeModelExponent = std::stof(Config::getValueWithDefault("pipeModelEponent", "2.0f"));
+  PipeModelLeafValue = std::stof(Config::getValueWithDefault("pipeModelLeafValue", "1.0e-8f"));
 }
 
 U64 Tree::countMetamers() const {
@@ -35,6 +38,8 @@ void Tree::performGrowthIteration() {
   // 3. Append new shoots.
   performGrowthIteration(root);
   // 4. Shed branches (not implemented).
+  ageMetamers(root);
+  prunePoorBranches(root);
   // 5. Update internode width for all internodes.
   updateInternodeWidths(root);
   tropismGrowthDirectionWeight *= TropismGrowthDirectionWeightAttenuation;
@@ -178,4 +183,47 @@ void Tree::updateInternodeWidths(std::unique_ptr<Metamer> &metamer) {
     total += std::pow(metamer->terminal->width, PipeModelExponent);
   }
   metamer->width = std::pow(total, 1.0f / PipeModelExponent);
+}
+
+void Tree::ageMetamers(std::unique_ptr<Metamer> &metamer) {
+  if (!metamer) {
+    return;
+  }
+  metamer->age += 1;
+  if (metamer->axillary) {
+    ageMetamers(metamer->axillary);
+  }
+  if (metamer->terminal) {
+    ageMetamers(metamer->terminal);
+  }
+}
+
+void Tree::prunePoorBranches(std::unique_ptr<Metamer> &metamer) {
+  if (!metamer) {
+    return;
+  }
+
+  if (metamer->axillary) {
+    if (shouldPruneBranch(metamer->axillary)) {
+      std::cout << "Pruning" << std::endl;
+      metamer->axillary.reset();
+    } else {
+      prunePoorBranches(metamer->axillary);
+    }
+  }
+  prunePoorBranches(metamer->terminal);
+}
+
+bool Tree::shouldPruneBranch(std::unique_ptr<Metamer> &metamer) {
+  if (metamer->age < 5) {
+    return false;
+  }
+  float light = metamer->light;
+  int count = metamer->countBuds();
+  //float ratio = light / count;
+  float timeFactor = 1.0f - std::exp(-0.1f * root->age);
+  float ratio = (light / static_cast<float>(count)) * timeFactor;
+  std::cout << "Should prune? Light: " << light << " count: " << count << " " << ratio << std::endl;
+  float threshold = std::stof(Config::getValueWithDefault("pruneBranchLightMetamerThreshold", "0.05f"));
+  return ratio < threshold;
 }

@@ -7,11 +7,16 @@
 //borchertHondaLambda=0.5f
 //optimalGrowthDirectionWeight=0.2f
 
-metamerBaseLength=0.01f
-occupancyRadiusFactor=2.0f
-perceptionRadiusFactor=4.0f
-perceptionAngle=1.571f
-axillaryPerturbationAngle=0.1745f
-borchertHondaAlpha=2.0f
-borchertHondaLambda=0.5f
-optimalGrowthDirectionWeight=0.2f
+metamerBaseLength=0.02f
+//occupancyRadiusFactor=4.0f
+//perceptionRadiusFactor=8.0f
+//perceptionAngle=2.094f
+//axillaryPerturbationAngle=0.1745f
+borchertHondaAlpha=3.5f
+borchertHondaLambda=0.4f
+optimalGrowthDirectionWeight=0.8f
+
+//pipeModelEponent=2.5f
+//pipeModelLeafValue=5.0e-8f
+
+pruneBranchLightMetamerThreshold=0.15f;
