@@ -13,7 +13,8 @@ public:
   std::unique_ptr<Metamer> root;
   Environment &environment;
 
-  float tropismGrowthDirectionWeight = 0.5f;
+  float tropismGrowthDirectionWeight;
+  float gravityPullWeight;
 
   Tree(Environment &environment, Point seedlingPosition);
 

@@ -14,6 +14,8 @@ Tree::Tree(Environment &environment, Point seedlingPosition) : environment(envir
 
   PipeModelExponent = std::stof(Config::getValueWithDefault("pipeModelEponent", "2.0f"));
   PipeModelLeafValue = std::stof(Config::getValueWithDefault("pipeModelLeafValue", "1.0e-8f"));
+  tropismGrowthDirectionWeight = std::stof(Config::getValueWithDefault("tropismGrowthDirectionWeight", "0.5f"));
+  gravityPullWeight = std::stof(Config::getValueWithDefault("gravityPullWeight", "0.05f"));
 }
 
 U64 Tree::countMetamers() const {
@@ -154,10 +156,12 @@ std::unique_ptr<Metamer> Tree::addNewShoot(BudId budId, float supportingMetamerL
   auto metamerDirection = direction;
   const auto optimalGrowthDirection = spaceAnalysis.v.normalize();
   const auto tropismDirection = Vector(0.0f, 1.0f, 0.0f).normalize();
+  const auto gravityPull = Vector(0.0f, -1.0f, 0.0f).normalize();
   const auto metamerLength = resource / static_cast<int>(std::floor(resource)) * environment.metamerBaseLength;
   for (auto metamers = static_cast<int>(std::floor(resource)); metamers > 0; metamers--) {
     metamerDirection = metamerDirection.add(optimalGrowthDirection.scale(environment.optimalGrowthDirectionWeight));
     metamerDirection = metamerDirection.add(tropismDirection.scale(tropismGrowthDirectionWeight));
+    metamerDirection = metamerDirection.add(gravityPull.scale(gravityPullWeight));
     metamerDirection = metamerDirection.normalize();
     const auto metamerVector = metamerDirection.scale(metamerLength);
     const auto previousMetamerEnd = metamerEnd;

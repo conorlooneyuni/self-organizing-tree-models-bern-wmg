@@ -65,4 +65,6 @@ public:
   void pollEvents();
 
   void swapBuffers();
+
+  BoundingBox cameraBoundingBox;
 };

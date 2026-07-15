@@ -71,9 +71,11 @@ int main(int argc, char *argv[]) {
     const auto metamerCount = tree.countMetamers();
     openGlWindow.startDrawing();
     if (userSpecifiedBoundingBox) {
-      openGlWindow.setCameraForBoundingBox(userSpecifiedBoundingBox.value());
+      openGlWindow.cameraBoundingBox = userSpecifiedBoundingBox.value();
+      //openGlWindow.setCameraForBoundingBox(userSpecifiedBoundingBox.value());
     } else {
-      openGlWindow.setCameraForBoundingBox(tree.getBoundingBox());
+      openGlWindow.cameraBoundingBox = tree.getBoundingBox();
+      //openGlWindow.setCameraForBoundingBox(tree.getBoundingBox());
     }
     if (mode == Mode::Standard || mode == Mode::Video) {
       openGlWindow.drawTree(tree);

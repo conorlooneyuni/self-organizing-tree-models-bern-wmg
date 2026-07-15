@@ -22,6 +22,12 @@ static UserAction getUserActionFromKey(int key) {
     return UserAction::MoveCloser;
   case GLFW_KEY_S:
     return UserAction::MoveAway;
+  case GLFW_KEY_A:
+    return UserAction::SteerLeft;
+  case GLFW_KEY_D:
+    return UserAction::SteerRight;
+  case GLFW_KEY_SPACE:
+    return UserAction::MoveToBoundingBox;
   default:
     return UserAction::None;
   }
@@ -319,6 +325,31 @@ void OpenGlWindow::updateCameraPosition() {
   const std::chrono::duration<float> seconds = currentTime - lastUpdate;
   auto newCameraPosition = cameraPosition;
   const auto approximationFactor = std::pow(2.0f, seconds.count());
+
+  const float steeringAngle = 1.5f * seconds.count(); 
+
+  // 2. Handle Steer Left (Counter-clockwise rotation around the Y-axis)
+  if (userActions[userActionToIndex(UserAction::SteerLeft)]) {
+    float s = std::sin(steeringAngle);
+    float c = std::cos(steeringAngle);
+
+    // Apply standard 2D rotation matrix to X and Z coordinates
+    float nextX = newCameraPosition.x * c - newCameraPosition.z * s;
+    float nextZ = newCameraPosition.x * s + newCameraPosition.z * c;
+
+    newCameraPosition = Point(nextX, newCameraPosition.y, nextZ);
+  }
+
+  // 3. Handle Steer Right (Clockwise rotation around the Y-axis)
+  if (userActions[userActionToIndex(UserAction::SteerRight)]) {
+    float s = std::sin(-steeringAngle);
+    float c = std::cos(-steeringAngle);
+
+    float nextX = newCameraPosition.x * c - newCameraPosition.z * s;
+    float nextZ = newCameraPosition.x * s + newCameraPosition.z * c;
+
+    newCameraPosition = Point(nextX, newCameraPosition.y, nextZ);
+  }
   if (userActions[userActionToIndex(UserAction::MoveCloser)]) {
     Vector vector(cameraPosition, Point(0.0f, 0.0f, 0.0f));
     vector = vector.scale((approximationFactor - 1.0f) / approximationFactor);
@@ -328,6 +359,9 @@ void OpenGlWindow::updateCameraPosition() {
     Vector vector(Point(0.0f, 0.0f, 0.0f), cameraPosition);
     vector = vector.scale(approximationFactor - 1.0f);
     newCameraPosition = newCameraPosition.translate(vector.x, vector.y, vector.z);
+  }
+  if (userActions[userActionToIndex(UserAction::MoveToBoundingBox)]) {
+    setCameraForBoundingBox(this->cameraBoundingBox);
   }
   lastUpdate = currentTime;
   cameraPosition = newCameraPosition;
@@ -344,7 +378,7 @@ void OpenGlWindow::startDrawing() {
 }
 
 void OpenGlWindow::swapBuffers() {
-  std::cout << "Draw calls: " << drawCalls << '\n';
+  // /std::cout << "Draw calls: " << drawCalls << '\n';
   glfwSwapBuffers(window);
 }
 
