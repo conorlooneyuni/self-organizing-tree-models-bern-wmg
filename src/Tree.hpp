@@ -8,8 +8,6 @@
 #include "Point.hpp"
 #include "Types.hpp"
 
-static constexpr float TropismGrowthDirectionWeightAttenuation = 0.95f;
-
 class Tree {
 public:
   std::unique_ptr<Metamer> root;

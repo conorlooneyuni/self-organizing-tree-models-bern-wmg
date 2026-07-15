@@ -1,7 +1,9 @@
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <sstream>
 
+#include "Config.hpp"
 #include "Environment.hpp"
 #include "Image.hpp"
 #include "OpenGlWindow.hpp"
@@ -9,8 +11,6 @@
 #include "Tree.hpp"
 
 enum class Mode { Standard, Image, Video };
-
-static constexpr U32 TargetMetamers = 5 * 1000;
 
 void saveFramebuffer(const std::string &filename) {
   std::vector<uint8_t> imageData(OpenGlWindow::DefaultWindowSide * OpenGlWindow::DefaultWindowSide * 3);
@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
   }
   Mode mode = Mode::Standard;
   std::optional<BoundingBox> userSpecifiedBoundingBox;
+  std::string configPath = "../res/config.txt";
   for (int i = 0; i < argc; i++) {
     const auto argument = std::string(argv[i]);
     if (argument == "--image") {
@@ -44,11 +45,24 @@ int main(int argc, char *argv[]) {
         values << argv[i];
       }
       userSpecifiedBoundingBox = BoundingBox(values.str());
+    } else if (argument == "--config") {
+      i++;
+      if (i < argc) {
+        configPath = argv[i];
+      }
     }
   }
+  Config::loadConfig(configPath);
   const auto begin = std::chrono::steady_clock::now();
   SplitMixGenerator splitMixGenerator;
-  MarkerSet markerSet(splitMixGenerator, 2.0f, 10, 1000 * 1000);
+  //2
+  //10
+  //1000 * 1000
+  float markerSideLength = std::stof(Config::getValueWithDefault("markerSideLength", "2.0f"));
+  float markerResolution = std::stof(Config::getValueWithDefault("markerResolution", "10.0f"));
+  float markerPointCount = std::stof(Config::getValueWithDefault("markerPointCount", "1000000.0f"));
+  MarkerSet markerSet(splitMixGenerator, markerSideLength, markerResolution, markerPointCount);
+  Environment::initialiseConfigValues();
   Environment environment(splitMixGenerator, markerSet);
   Tree tree(environment, Point{});
   OpenGlWindow openGlWindow;
@@ -64,7 +78,8 @@ int main(int argc, char *argv[]) {
     if (mode == Mode::Standard || mode == Mode::Video) {
       openGlWindow.drawTree(tree);
     }
-    if (metamerCount < TargetMetamers) {
+    float targetMetamers = std::stof(Config::getValueWithDefault("targetMetamers", "5000.0f"));
+    if (metamerCount < targetMetamers) {
       tree.performGrowthIteration();
     } else {
       if (mode == Mode::Image) {

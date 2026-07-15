@@ -5,6 +5,7 @@
 #include "MarkerSet.hpp"
 #include "Random.hpp"
 #include "Types.hpp"
+#include "Config.hpp"
 
 class Environment {
 private:
@@ -14,22 +15,24 @@ public:
   static constexpr auto Pi = 3.1415926535897932384626433832795f;
 
   // In meters.
-  static constexpr auto MetamerBaseLength = 0.01f;
+  inline static float metamerBaseLength;
+  inline static float occupancyRadiusFactor;
 
-  static constexpr auto OccupancyRadiusFactor = 2.0f;
-  static constexpr auto PerceptionRadiusFactor = 4.0f;
+  inline static float perceptionRadiusFactor;
+  inline static float perceptionAngle;
 
-  static constexpr auto PerceptionAngle = Pi / 2.0f;
+  inline static float axillaryPerturbationAngle;
 
-  static constexpr auto AxillaryPerturbationAngle = Pi / 18.0f;
+  inline static float borchertHondaAlpha;
+  
+  inline static float borchertHondaLambda;
 
-  static constexpr auto BorchertHondaAlpha = 2.0f;
-  static constexpr auto BorchertHondaLambda = 0.5f;
-
-  static constexpr auto OptimalGrowthDirectionWeight = 0.2f;
+  inline static float optimalGrowthDirectionWeight;
 
   SplitMixGenerator splitMixGenerator;
   MarkerSet markerSet;
+
+  static void initialiseConfigValues();
 
   Environment(const SplitMixGenerator &SplitMixGenerator, MarkerSet markerSet);
 

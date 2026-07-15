@@ -25,7 +25,7 @@ static Vector randomPerturbation(Environment &environment, Vector originalVector
 }
 
 Metamer::Metamer(Environment &environment, const Point &beginning, const Point &end)
-    : beginning(beginning), end(end), axillaryDirection(randomPerturbation(environment, Vector(beginning, end), Environment::AxillaryPerturbationAngle)),
+    : beginning(beginning), end(end), axillaryDirection(randomPerturbation(environment, Vector(beginning, end), environment.axillaryPerturbationAngle)),
       axillaryId(environment.getNextBudId()), terminalId(environment.getNextBudId()) {
 }
 

@@ -3,11 +3,13 @@
 
 #include <iostream>
 
-static constexpr float PipeModelExponent = 2.0f;
-static constexpr float PipeModelLeafValue = 1.0e-8f;
+static float PipeModelExponent = std::stof(Config::getValueWithDefault("pipeModelEponent", "2.0f"));
+static float PipeModelLeafValue = std::stof(Config::getValueWithDefault("pipeModelLeafValue", "1.0e-8f"));
+
+static float TropismGrowthDirectionWeightAttenuation = 0.95f;
 
 Tree::Tree(Environment &environment, Point seedlingPosition) : environment(environment) {
-  const auto end = seedlingPosition.translate(0.0f, 1.0f * Environment::MetamerBaseLength, 0.0f);
+  const auto end = seedlingPosition.translate(0.0f, 1.0f * environment.metamerBaseLength, 0.0f);
   root = std::make_unique<Metamer>(environment, seedlingPosition, end);
 }
 
@@ -28,7 +30,7 @@ void Tree::performGrowthIteration() {
   allocateMarkers(root);
   // 2. Determine the fate of each bud (the extended Borchert-Honda model).
   propagateLightBasipetally(root);
-  root->growthResource = Environment::BorchertHondaAlpha * root->light;
+  root->growthResource = environment.borchertHondaAlpha * root->light;
   propagateResourcesAcropetally(root);
   // 3. Append new shoots.
   performGrowthIteration(root);
@@ -42,8 +44,8 @@ void Tree::allocateMarkers(std::unique_ptr<Metamer> &metamer) {
   if (!metamer) {
     return;
   }
-  const auto theta = Environment::PerceptionAngle;
-  const auto r = Environment::PerceptionRadiusFactor * metamer->getLength();
+  const auto theta = environment.perceptionAngle;
+  const auto r = Environment::perceptionRadiusFactor * metamer->getLength();
   if (!metamer->axillary) {
     environment.markerSet.updateAllocatedInCone(metamer->axillaryId, metamer->end, metamer->axillaryDirection, theta, r);
   } else {
@@ -63,8 +65,8 @@ void Tree::propagateLightBasipetally(std::unique_ptr<Metamer> &metamer) {
   }
   propagateLightBasipetally(metamer->axillary);
   propagateLightBasipetally(metamer->terminal);
-  const auto theta = Environment::PerceptionAngle;
-  const auto r = Environment::PerceptionRadiusFactor * metamer->getLength();
+  const auto theta = environment.perceptionAngle;
+  const auto r = Environment::perceptionRadiusFactor * metamer->getLength();
   metamer->light = 0.0f;
   if (!metamer->axillary) {
     const auto budId = metamer->axillaryId;
@@ -93,7 +95,7 @@ void Tree::propagateResourcesAcropetally(std::unique_ptr<Metamer> &metamer) {
     return;
   }
   const auto v = metamer->growthResource;
-  const auto lambda = Environment::BorchertHondaLambda;
+  const auto lambda = Environment::borchertHondaLambda;
   const auto denominator = lambda * qM + (1.0f - lambda) * qL;
   const auto vM = v * (lambda * qM) / denominator;
   const auto vL = v * ((1.0f - lambda) * qL) / denominator;
@@ -132,8 +134,8 @@ void Tree::performGrowthIteration(std::unique_ptr<Metamer> &metamer) {
 }
 
 std::unique_ptr<Metamer> Tree::addNewShoot(BudId budId, float supportingMetamerLength, Point origin, Vector direction, float resource) {
-  const auto theta = Environment::PerceptionAngle;
-  const auto r = Environment::PerceptionRadiusFactor * supportingMetamerLength;
+  const auto theta = environment.perceptionAngle;
+  const auto r = Environment::perceptionRadiusFactor * supportingMetamerLength;
   const auto spaceAnalysis = environment.markerSet.getAllocatedInCone(budId, origin, direction, theta, r);
   if (spaceAnalysis.q == 0.0f) {
     return nullptr;
@@ -147,15 +149,15 @@ std::unique_ptr<Metamer> Tree::addNewShoot(BudId budId, float supportingMetamerL
   auto metamerDirection = direction;
   const auto optimalGrowthDirection = spaceAnalysis.v.normalize();
   const auto tropismDirection = Vector(0.0f, 1.0f, 0.0f).normalize();
-  const auto metamerLength = resource / static_cast<int>(std::floor(resource)) * Environment::MetamerBaseLength;
+  const auto metamerLength = resource / static_cast<int>(std::floor(resource)) * environment.metamerBaseLength;
   for (auto metamers = static_cast<int>(std::floor(resource)); metamers > 0; metamers--) {
-    metamerDirection = metamerDirection.add(optimalGrowthDirection.scale(Environment::OptimalGrowthDirectionWeight));
+    metamerDirection = metamerDirection.add(optimalGrowthDirection.scale(environment.optimalGrowthDirectionWeight));
     metamerDirection = metamerDirection.add(tropismDirection.scale(tropismGrowthDirectionWeight));
     metamerDirection = metamerDirection.normalize();
     const auto metamerVector = metamerDirection.scale(metamerLength);
     const auto previousMetamerEnd = metamerEnd;
     metamerEnd = metamerEnd.translate(metamerVector.x, metamerVector.y, metamerVector.z);
-    environment.markerSet.removeMarkersInSphere(metamerEnd, Environment::OccupancyRadiusFactor * metamerLength);
+    environment.markerSet.removeMarkersInSphere(metamerEnd, environment.occupancyRadiusFactor * metamerLength);
     *nextMetamer = std::make_unique<Metamer>(environment, previousMetamerEnd, metamerEnd);
     nextMetamer = &(*nextMetamer)->terminal;
   }
