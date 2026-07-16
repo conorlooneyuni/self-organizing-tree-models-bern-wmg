@@ -26,6 +26,10 @@ static UserAction getUserActionFromKey(int key) {
     return UserAction::SteerLeft;
   case GLFW_KEY_D:
     return UserAction::SteerRight;
+  case GLFW_KEY_Q:
+    return UserAction::SteerUp;
+  case GLFW_KEY_E:
+    return UserAction::SteerDown;
   case GLFW_KEY_SPACE:
     return UserAction::MoveToBoundingBox;
   default:
@@ -349,6 +353,45 @@ void OpenGlWindow::updateCameraPosition() {
     float nextZ = newCameraPosition.x * s + newCameraPosition.z * c;
 
     newCameraPosition = Point(nextX, newCameraPosition.y, nextZ);
+  }
+  const float pitchAngle = 1.5f * seconds.count(); 
+
+  // Handle Steer Up
+  if (userActions[userActionToIndex(UserAction::SteerUp)]) {
+    float s = std::sin(pitchAngle);
+    float c = std::cos(pitchAngle);
+
+    // 1. Calculate horizontal radius from the origin
+    float currentRadius = std::sqrt(newCameraPosition.x * newCameraPosition.x + newCameraPosition.z * newCameraPosition.z);
+
+    // 2. Rotate the (radius, Y) vector in 2D space
+    float nextRadius = currentRadius * c - newCameraPosition.y * s;
+    float nextY = currentRadius * s + newCameraPosition.y * c;
+
+    // 3. Project the new radius back onto the original X and Z directions
+    float ratio = (currentRadius == 0.0f) ? 0.0f : (nextRadius / currentRadius);
+    float nextX = newCameraPosition.x * ratio;
+    float nextZ = newCameraPosition.z * ratio;
+
+    newCameraPosition = Point(nextX, nextY, nextZ);
+  }
+
+  // Handle Steer Down
+  if (userActions[userActionToIndex(UserAction::SteerDown)]) {
+    // Inverse angle for opposite direction
+    float s = std::sin(-pitchAngle);
+    float c = std::cos(-pitchAngle);
+
+    float currentRadius = std::sqrt(newCameraPosition.x * newCameraPosition.x + newCameraPosition.z * newCameraPosition.z);
+
+    float nextRadius = currentRadius * c - newCameraPosition.y * s;
+    float nextY = currentRadius * s + newCameraPosition.y * c;
+
+    float ratio = (currentRadius == 0.0f) ? 0.0f : (nextRadius / currentRadius);
+    float nextX = newCameraPosition.x * ratio;
+    float nextZ = newCameraPosition.z * ratio;
+
+    newCameraPosition = Point(nextX, nextY, nextZ);
   }
   if (userActions[userActionToIndex(UserAction::MoveCloser)]) {
     Vector vector(cameraPosition, Point(0.0f, 0.0f, 0.0f));

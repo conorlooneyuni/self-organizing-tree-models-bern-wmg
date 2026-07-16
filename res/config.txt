@@ -12,11 +12,14 @@ metamerBaseLength=0.02f
 //perceptionRadiusFactor=8.0f
 //perceptionAngle=2.094f
 //axillaryPerturbationAngle=0.1745f
-borchertHondaAlpha=3.5f
-borchertHondaLambda=0.4f
+borchertHondaAlpha=3.75f
+borchertHondaLambda=0.3f
 optimalGrowthDirectionWeight=0.8f
+
+tropismGrowthDirectionWeight=0.9f;
+gravityPullWeight=0.00f;
 
 //pipeModelEponent=2.5f
 //pipeModelLeafValue=5.0e-8f
 
-pruneBranchLightMetamerThreshold=0.15f;
+pruneBranchLightMetamerThreshold=0.1f;
